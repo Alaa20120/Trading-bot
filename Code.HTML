@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX TRADER V2 — نظام التداول الذكي المتكامل</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #03070a;
+  --bg1: #060d12;
+  --bg2: #080f16;
+  --bg3: #0c1820;
+  --bg4: #101f2a;
+  --panel: #091219;
+  --border: #152330;
+  --border2: #1d3045;
+  --accent: #00c8f0;
+  --accent2: #00e87a;
+  --accent3: #ff6b35;
+  --accent4: #ffc840;
+  --danger: #ff3358;
+  --purple: #a855f7;
+  --text: #d8eef8;
+  --text2: #7aafc8;
+  --text3: #3d6880;
+  --glow: 0 0 24px rgba(0,200,240,0.25);
+  --glow2: 0 0 24px rgba(0,232,122,0.25);
+  --glow3: 0 0 24px rgba(255,200,64,0.25);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Tajawal',sans-serif;min-height:100vh;overflow-x:hidden;font-size:13px;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 15% 5%,rgba(0,200,240,.04) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 85% 90%,rgba(0,232,122,.03) 0%,transparent 60%);pointer-events:none;z-index:0;}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(–bg);}
+::-webkit-scrollbar-thumb{background:var(–border2);border-radius:3px;}
+
+/* TICKER */
+.ticker{background:var(–bg1);border-bottom:1px solid var(–border);padding:6px 0;overflow:hidden;}
+.ticker-inner{display:flex;gap:36px;animation:tickerMove 30s linear infinite;white-space:nowrap;}
+@keyframes tickerMove{to{transform:translateX(-50%);}}
+.ti{display:flex;align-items:center;gap:7px;flex-shrink:0;font-family:‘JetBrains Mono’;font-size:11px;}
+.ti-p{color:var(–text3);}
+.ti-v{color:var(–text);}
+.ti-c.up{color:var(–accent2);}
+.ti-c.dn{color:var(–danger);}
+
+/* HEADER */
+.header{background:var(–bg1);border-bottom:1px solid var(–border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(–accent),var(–accent2));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:var(–glow);}
+.logo-name{font-size:18px;font-weight:900;letter-spacing:3px;}
+.logo-name span{color:var(–accent);}
+.logo-ver{font-size:9px;color:var(–text3);letter-spacing:4px;}
+.header-caps{display:flex;gap:16px;align-items:center;}
+.hc{text-align:center;}
+.hc-v{font-size:15px;font-weight:700;font-family:‘JetBrains Mono’;}
+.hc-l{font-size:9px;color:var(–text3);letter-spacing:2px;}
+.hc-v.g{color:var(–accent2);}
+.hc-v.b{color:var(–accent);}
+.hc-v.y{color:var(–accent4);}
+.hc-v.r{color:var(–danger);}
+.live-dot{width:7px;height:7px;background:var(–accent2);border-radius:50%;display:inline-block;animation:pulse 1.4s infinite;margin-left:4px;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,232,122,.7);}50%{box-shadow:0 0 0 5px rgba(0,232,122,0);}}
+
+/* MAIN GRID LAYOUT */
+.app{display:grid;grid-template-columns:220px 1fr 300px;grid-template-rows:auto 1fr;gap:0;height:calc(100vh - 88px);position:relative;z-index:1;}
+
+/* PANEL BASE */
+.pnl{background:var(–panel);border:1px solid var(–border);border-radius:12px;padding:14px;position:relative;overflow:hidden;}
+.pnl::before{content:’’;position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(–accent),transparent);opacity:.3;}
+.pnl-title{font-size:9px;font-weight:700;letter-spacing:3px;color:var(–text3);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.pnl-title .ic{font-size:12px;}
+
+/* LEFT SIDEBAR */
+.sidebar-left{grid-column:1;grid-row:1/3;background:var(–bg1);border-right:1px solid var(–border);overflow-y:auto;padding:14px;}
+
+/* CENTER */
+.center-area{grid-column:2;grid-row:1/3;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;}
+
+/* RIGHT SIDEBAR */
+.sidebar-right{grid-column:3;grid-row:1/3;background:var(–bg1);border-left:1px solid var(–border);overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;}
+
+/* PAIR BUTTONS */
+.pair-btn{width:100%;padding:9px 12px;border:1px solid var(–border);border-radius:8px;background:var(–bg3);color:var(–text2);font-family:‘JetBrains Mono’;font-size:12px;cursor:pointer;transition:.2s;text-align:right;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;}
+.pair-btn:hover,.pair-btn.active{border-color:var(–accent);color:var(–accent);background:rgba(0,200,240,.06);}
+.pair-price{font-size:10px;color:var(–text3);}
+.pair-btn.active .pair-price{color:var(–accent2);}
+
+/* MULTI-TIMEFRAME PANEL */
+.mtf-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px;}
+.mtf-card{background:var(–bg3);border:1px solid var(–border);border-radius:10px;padding:10px 8px;text-align:center;transition:.3s;}
+.mtf-tf{font-size:10px;color:var(–text3);letter-spacing:2px;margin-bottom:6px;}
+.mtf-trend{font-size:14px;font-weight:900;letter-spacing:1px;margin-bottom:4px;}
+.mtf-trend.bull{color:var(–accent2);}
+.mtf-trend.bear{color:var(–danger);}
+.mtf-trend.neut{color:var(–accent4);}
+.mtf-str{font-size:9px;color:var(–text3);}
+.mtf-bar{height:3px;border-radius:2px;margin-top:6px;}
+.mtf-bar.bull{background:var(–accent2);}
+.mtf-bar.bear{background:var(–danger);}
+.mtf-bar.neut{background:var(–accent4);}
+.mtf-card.bull{border-color:rgba(0,232,122,.2);background:rgba(0,232,122,.04);}
+.mtf-card.bear{border-color:rgba(255,51,88,.2);background:rgba(255,51,88,.04);}
+
+/* SIGNAL MAIN */
+.signal-big{border-radius:12px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.signal-big.buy{background:rgba(0,232,122,.08);border:2px solid rgba(0,232,122,.35);box-shadow:var(–glow2);}
+.signal-big.sell{background:rgba(255,51,88,.08);border:2px solid rgba(255,51,88,.35);box-shadow:0 0 24px rgba(255,51,88,.2);}
+.signal-big.wait{background:rgba(255,200,64,.08);border:2px solid rgba(255,200,64,.25);}
+.sig-left .sig-lbl{font-size:9px;letter-spacing:3px;color:var(–text3);}
+.sig-left .sig-txt{font-size:36px;font-weight:900;letter-spacing:5px;}
+.sig-left .sig-txt.buy{color:var(–accent2);}
+.sig-left .sig-txt.sell{color:var(–danger);}
+.sig-left .sig-txt.wait{color:var(–accent4);}
+.sig-right{text-align:left;}
+.sig-conf{font-size:24px;font-weight:800;font-family:‘JetBrains Mono’;color:var(–accent4);}
+.sig-pair{font-size:11px;color:var(–text3);}
+.sig-ev{font-size:11px;color:var(–text2);margin-top:3px;}
+
+/* PRICE LEVELS GRID */
+.levels-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;}
+.lv{background:var(–bg3);border-radius:8px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center;}
+.lv-lbl{font-size:10px;color:var(–text3);}
+.lv-val{font-family:‘JetBrains Mono’;font-size:12px;font-weight:700;}
+.lv-val.tp{color:var(–accent2);}
+.lv-val.sl{color:var(–danger);}
+.lv-val.en{color:var(–accent4);}
+.lv-val.cu{color:var(–accent);}
+
+/* FIBONACCI */
+.fib-row{display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:6px;background:var(–bg3);margin-bottom:4px;}
+.fib-ratio{font-family:‘JetBrains Mono’;font-size:10px;color:var(–purple);width:44px;}
+.fib-bar-wrap{flex:1;height:4px;background:var(–bg4);border-radius:2px;overflow:hidden;}
+.fib-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(–purple),var(–accent));}
+.fib-price{font-family:‘JetBrains Mono’;font-size:11px;color:var(–text2);width:80px;text-align:left;}
+.fib-tag{font-size:9px;padding:1px 6px;border-radius:3px;background:rgba(168,85,247,.15);color:var(–purple);}
+
+/* BOLLINGER / STDDEV */
+.bb-row{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(–bg3);border-radius:7px;margin-bottom:5px;}
+.bb-lbl{font-size:11px;color:var(–text3);}
+.bb-val{font-family:‘JetBrains Mono’;font-size:12px;}
+
+/* DYNAMIC TRADE TRACKER */
+.dtt{background:var(–bg3);border:1px solid var(–border2);border-radius:10px;padding:12px;margin-bottom:8px;}
+.dtt-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.dtt-pair{font-family:‘JetBrains Mono’;font-size:13px;font-weight:700;color:var(–accent);}
+.dtt-dir{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;}
+.dtt-dir.buy{background:rgba(0,232,122,.15);color:var(–accent2);}
+.dtt-dir.sell{background:rgba(255,51,88,.15);color:var(–danger);}
+.dtt-progress{position:relative;height:10px;background:var(–bg4);border-radius:5px;margin:10px 0;}
+.dtt-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(–danger),var(–accent4),var(–accent2));transition:width .5s ease;}
+.dtt-markers{display:flex;justify-content:space-between;font-size:9px;color:var(–text3);font-family:‘JetBrains Mono’;}
+.dtt-pnl{font-size:22px;font-weight:900;font-family:‘JetBrains Mono’;text-align:center;margin:8px 0;}
+.dtt-pnl.pos{color:var(–accent2);}
+.dtt-pnl.neg{color:var(–danger);}
+.dtt-trail{font-size:10px;color:var(–accent4);text-align:center;letter-spacing:1px;}
+
+/* INDICATORS ROW */
+.ind-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.ind-card{background:var(–bg3);border-radius:9px;padding:10px;text-align:center;border:1px solid var(–border);}
+.ind-name{font-size:9px;color:var(–text3);letter-spacing:2px;margin-bottom:6px;}
+.ind-val{font-size:18px;font-weight:800;font-family:‘JetBrains Mono’;}
+.ind-val.bull{color:var(–accent2);}
+.ind-val.bear{color:var(–danger);}
+.ind-val.neut{color:var(–accent4);}
+.ind-sig{font-size:9px;margin-top:3px;}
+
+/* CORRELATED PAIRS */
+.corr-row{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(–bg3);border-radius:7px;margin-bottom:5px;}
+.corr-pair{font-family:‘JetBrains Mono’;font-size:11px;color:var(–text2);width:70px;}
+.corr-dir{font-size:10px;width:22px;text-align:center;}
+.corr-bar-w{flex:1;height:5px;background:var(–bg4);border-radius:3px;overflow:hidden;}
+.corr-bar-f{height:100%;border-radius:3px;}
+.corr-bar-f.pos{background:var(–accent2);}
+.corr-bar-f.neg{background:var(–danger);}
+.corr-pct{font-size:10px;font-family:‘JetBrains Mono’;width:38px;text-align:left;}
+.corr-pct.pos{color:var(–accent2);}
+.corr-pct.neg{color:var(–danger);}
+
+/* NEWS */
+.news-item{background:var(–bg3);border-radius:9px;padding:10px 12px;margin-bottom:7px;border-right:3px solid var(–border2);transition:.2s;}
+.news-item.pos{border-right-color:var(–accent2);}
+.news-item.neg{border-right-color:var(–danger);}
+.news-item.neut{border-right-color:var(–accent4);}
+.news-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.news-title{font-size:11px;color:var(–text);font-weight:600;flex:1;margin-left:8px;}
+.news-impact{font-size:9px;padding:2px 7px;border-radius:4px;font-weight:700;letter-spacing:1px;}
+.news-impact.high{background:rgba(255,51,88,.15);color:var(–danger);}
+.news-impact.med{background:rgba(255,200,64,.15);color:var(–accent4);}
+.news-impact.low{background:rgba(0,200,240,.15);color:var(–accent);}
+.news-detail{font-size:10px;color:var(–text3);line-height:1.5;}
+.news-sentiment{display:flex;align-items:center;gap:6px;margin-top:6px;}
+.news-sent-bar{flex:1;height:4px;border-radius:2px;background:var(–bg4);overflow:hidden;}
+.news-sent-fill{height:100%;border-radius:2px;}
+.news-sent-label{font-size:9px;letter-spacing:1px;width:45px;}
+
+/* CAPITAL SECTION */
+.cap-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.cap-card{background:var(–bg3);border-radius:9px;padding:10px;text-align:center;border:1px solid var(–border);}
+.cap-val{font-size:18px;font-weight:800;font-family:‘JetBrains Mono’;margin-bottom:3px;}
+.cap-lbl{font-size:9px;color:var(–text3);letter-spacing:1px;}
+
+/* LIMITS TABLE */
+.limits-table{width:100%;border-collapse:collapse;}
+.limits-table th{font-size:9px;color:var(–text3);letter-spacing:2px;padding:6px 8px;border-bottom:1px solid var(–border);}
+.limits-table td{font-size:11px;padding:6px 8px;border-bottom:1px solid rgba(21,35,48,.5);font-family:‘JetBrains Mono’;}
+.limits-table td.act{color:var(–accent2);}
+.limits-table td.lim{color:var(–danger);}
+.limits-table td.pnd{color:var(–accent4);}
+
+/* ANALYZE BUTTON */
+.btn-ai{width:100%;padding:12px;border:none;border-radius:9px;background:linear-gradient(135deg,var(–accent),rgba(0,200,240,.6));color:var(–bg);font-family:‘Tajawal’;font-size:13px;font-weight:800;letter-spacing:2px;cursor:pointer;transition:.3s;box-shadow:var(–glow);margin-top:8px;}
+.btn-ai:hover{transform:translateY(-2px);box-shadow:0 0 30px rgba(0,200,240,.5);}
+.btn-ai:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.btn-news{width:100%;padding:10px;border:1px solid var(–border2);border-radius:9px;background:transparent;color:var(–text2);font-family:‘Tajawal’;font-size:12px;cursor:pointer;transition:.2s;margin-top:6px;}
+.btn-news:hover{border-color:var(–accent4);color:var(–accent4);}
+
+/* LOADING */
+.spin{width:28px;height:28px;border:2px solid var(–border);border-top-color:var(–accent);border-radius:50%;animation:spin .7s linear infinite;margin:8px auto;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* AI BOX */
+.ai-box{background:var(–bg3);border-radius:9px;padding:12px;font-size:12px;line-height:1.8;color:var(–text2);border-right:3px solid var(–accent);margin-top:8px;max-height:250px;overflow-y:auto;}
+
+/* INPUT */
+.inp{width:100%;padding:8px 10px;background:var(–bg3);border:1px solid var(–border);border-radius:7px;color:var(–text);font-family:‘JetBrains Mono’;font-size:12px;outline:none;transition:.2s;margin-bottom:8px;}
+.inp:focus{border-color:var(–accent);}
+.inp-lbl{font-size:9px;color:var(–text3);letter-spacing:2px;margin-bottom:4px;}
+
+/* STRENGTH BARS */
+.str-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.str-lbl{font-size:10px;color:var(–text3);width:65px;flex-shrink:0;}
+.str-bar{flex:1;height:5px;background:var(–bg4);border-radius:3px;overflow:hidden;}
+.str-fill{height:100%;border-radius:3px;transition:width 1s ease;}
+.str-val{font-size:10px;font-family:‘JetBrains Mono’;color:var(–text2);width:30px;text-align:left;}
+
+/* BADGE */
+.badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:1px;}
+.badge.bull{background:rgba(0,232,122,.12);color:var(–accent2);}
+.badge.bear{background:rgba(255,51,88,.12);color:var(–danger);}
+.badge.neut{background:rgba(255,200,64,.12);color:var(–accent4);}
+
+/* PROB GAUGE */
+.prob-circle-wrap{display:flex;justify-content:center;margin:10px 0;}
+.prob-ring{width:80px;height:80px;position:relative;}
+.prob-ring svg{transform:rotate(-90deg);}
+.prob-ring-txt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;}
+.prob-pct{font-size:20px;font-weight:900;font-family:‘JetBrains Mono’;color:var(–accent4);}
+.prob-lbl{font-size:8px;color:var(–text3);letter-spacing:1px;}
+
+@media(max-width:1100px){.app{grid-template-columns:1fr;}.sidebar-left,.sidebar-right{grid-column:1;grid-row:auto;}.center-area{grid-column:1;grid-row:auto;}}
+</style>
+
+</head>
+<body>
+
+<!-- TICKER -->
+
+<div class="ticker">
+  <div class="ticker-inner" id="ticker"></div>
+</div>
+
+<!-- HEADER -->
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    <div>
+      <div class="logo-name">APEX <span>TRADER</span></div>
+      <div class="logo-ver">V2.0 — MULTI-TIMEFRAME INTELLIGENCE</div>
+    </div>
+  </div>
+  <div class="header-caps">
+    <div class="hc"><div class="hc-v g" id="hBal">$1,000</div><div class="hc-l">رأس المال</div></div>
+    <div class="hc"><div class="hc-v g" id="hPnl">+$0</div><div class="hc-l">P&L اليوم</div></div>
+    <div class="hc"><div class="hc-v b" id="hTrades">0</div><div class="hc-l">صفقات فعالة</div></div>
+    <div class="hc"><div class="hc-v y" id="hWR">87.2%</div><div class="hc-l">Win Rate</div></div>
+    <div class="hc"><div class="hc-v g">LIVE <span class="live-dot"></span></div><div class="hc-l">STATUS</div></div>
+  </div>
+</div>
+
+<div class="app">
+
+<!-- ======================== LEFT SIDEBAR ======================== -->
+
+<div class="sidebar-left">
+
+  <div class="pnl-title"><span class="ic">🎯</span> اختر الزوج</div>
+  <div id="pairList"></div>
+
+  <div style="margin-top:14px;">
+    <div class="pnl-title"><span class="ic">🔗</span> الأزواج المرتبطة</div>
+    <div id="corrList"></div>
+  </div>
+
+  <div style="margin-top:14px;">
+    <div class="pnl-title"><span class="ic">📊</span> المؤشرات المرتبطة</div>
+    <div id="indicesList"></div>
+  </div>
+
+  <div style="margin-top:14px;">
+    <div class="pnl-title"><span class="ic">⚙️</span> إعدادات رأس المال</div>
+    <div class="inp-lbl">رأس المال الكلي ($)</div>
+    <input class="inp" type="number" id="capitalInp" value="1000" oninput="onCapChange()">
+    <div class="inp-lbl">نسبة المخاطرة (%)</div>
+    <input class="inp" type="number" id="riskInp" value="2" min="0.5" max="5" step="0.5" oninput="onCapChange()">
+    <div class="inp-lbl">أقصى صفقات يومياً</div>
+    <input class="inp" type="number" id="maxTradesInp" value="3" min="1" max="10">
+  </div>
+
+</div>
+
+<!-- ======================== CENTER AREA ======================== -->
+
+<div class="center-area">
+
+  <!-- MULTI-TIMEFRAME -->
+
+  <div class="pnl">
+    <div class="pnl-title"><span class="ic">🕐</span> تحليل متعدد الفريمات — <span id="mtfPairLabel" style="color:var(--accent);">EUR/USD</span></div>
+    <div class="mtf-grid" id="mtfGrid"></div>
+    <div style="font-size:10px;color:var(--text3);text-align:center;letter-spacing:2px;">
+      الدخول النهائي على فريم الدقيقة M1 بعد تأكيد الفريمات العليا
+    </div>
+  </div>
+
+  <!-- MAIN SIGNAL -->
+
+  <div class="pnl">
+    <div class="signal-big buy" id="mainSignalBox">
+      <div class="sig-left">
+        <div class="sig-lbl">MASTER SIGNAL</div>
+        <div class="sig-txt buy" id="mainSigTxt">BUY</div>
+        <div id="mainSigConf" style="font-size:11px;color:var(--text3);margin-top:4px;">4/5 تأكيدات • EUR/USD</div>
+      </div>
+      <div class="sig-right">
+        <div class="sig-conf" id="mainSigPct">91%</div>
+        <div class="sig-pair">ثقة الإشارة</div>
+        <div class="sig-ev" id="mainSigEV">EV: +$42 / صفقة</div>
+      </div>
+    </div>
+
+```
+<!-- INDICATORS -->
+<div class="ind-grid" id="indGrid" style="margin-bottom:12px;"></div>
+
+<!-- STRENGTH -->
+<div class="str-row">
+  <div class="str-lbl">الترند</div>
+  <div class="str-bar"><div class="str-fill" id="sTrend" style="width:82%;background:linear-gradient(90deg,var(--accent),var(--accent2));"></div></div>
+  <div class="str-val" id="sTrendV">82%</div>
+</div>
+<div class="str-row">
+  <div class="str-lbl">الزخم</div>
+  <div class="str-bar"><div class="str-fill" id="sMom" style="width:68%;background:linear-gradient(90deg,var(--accent3),var(--accent4));"></div></div>
+  <div class="str-val" id="sMomV">68%</div>
+</div>
+<div class="str-row">
+  <div class="str-lbl">الإشارة</div>
+  <div class="str-bar"><div class="str-fill" id="sStr" style="width:91%;background:linear-gradient(90deg,var(--accent2),var(--accent4));"></div></div>
+  <div class="str-val" id="sStrV">91%</div>
+</div>
+```
+
+  </div>
+
+  <!-- PRICE LEVELS + FIB -->
+
+  <div class="pnl">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+
+```
+  <div>
+    <div class="pnl-title"><span class="ic">📏</span> مستويات السعر (ديناميكية)</div>
+    <div class="levels-grid" id="levelsGrid"></div>
+    <div style="background:rgba(0,232,122,.07);border:1px solid rgba(0,232,122,.2);border-radius:8px;padding:8px 10px;font-size:10px;color:var(--text2);margin-top:6px;">
+      <strong style="color:var(--accent2);">🔄 Trailing SL:</strong> ينتقل للـ Break Even بعد TP1، ويتبع السعر بعد TP2
+    </div>
+  </div>
+
+  <div>
+    <div class="pnl-title"><span class="ic">🌀</span> مستويات فيبوناتشي</div>
+    <div id="fibGrid"></div>
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- BOLLINGER + STD DEV + PROBABILITY -->
+
+  <div class="pnl">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+
+```
+  <div>
+    <div class="pnl-title"><span class="ic">📉</span> Bollinger Bands</div>
+    <div id="bbGrid"></div>
+  </div>
+
+  <div>
+    <div class="pnl-title"><span class="ic">📐</span> الانحراف المعياري</div>
+    <div id="stdDevGrid"></div>
+  </div>
+
+  <div>
+    <div class="pnl-title"><span class="ic">🎲</span> احتمالية الربح</div>
+    <div class="prob-circle-wrap">
+      <div class="prob-ring">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="32" fill="none" stroke="var(--bg3)" stroke-width="8"/>
+          <circle cx="40" cy="40" r="32" fill="none" stroke="var(--accent4)" stroke-width="8"
+            stroke-dasharray="201" id="probCircle" stroke-dashoffset="50" stroke-linecap="round"/>
+        </svg>
+        <div class="prob-ring-txt">
+          <div class="prob-pct" id="probPct">75%</div>
+          <div class="prob-lbl">WIN PROB</div>
+        </div>
+      </div>
+    </div>
+    <div id="probStats" style="font-size:10px;text-align:center;"></div>
+  </div>
+
+</div>
+```
+
+  </div>
+
+  <!-- ACTIVE TRADES -->
+
+  <div class="pnl">
+    <div class="pnl-title"><span class="ic">🔥</span> الصفقات الفعالة + Trailing SL/TP</div>
+    <div id="activeTrades">
+      <div style="text-align:center;padding:20px;color:var(--text3);font-size:11px;">لا توجد صفقات فعالة — اضغط "تحليل" لفتح صفقة</div>
+    </div>
+    <button class="btn-ai" id="openTradeBtn" onclick="openSimTrade()">⚡ فتح صفقة تجريبية بناءً على التحليل</button>
+  </div>
+
+</div>
+
+<!-- ======================== RIGHT SIDEBAR ======================== -->
+
+<div class="sidebar-right">
+
+  <!-- AI ANALYSIS -->
+
+  <div class="pnl">
+    <div class="pnl-title"><span class="ic">🤖</span> تحليل الذكاء الاصطناعي</div>
+    <button class="btn-ai" id="analyzeBtn" onclick="runAI()">⚡ تحليل شامل الآن</button>
+    <button class="btn-news" id="newsBtn" onclick="runNewsAI()">📰 تحليل الأخبار الاقتصادية</button>
+    <div id="aiLoading" style="display:none;text-align:center;padding:12px;"><div class="spin"></div><div style="font-size:10px;color:var(--text3);letter-spacing:2px;" id="aiLoadingTxt">جاري التحليل...</div></div>
+    <div id="aiResult" style="display:none;"><div class="ai-box" id="aiBox"></div></div>
+  </div>
+
+  <!-- ECONOMIC NEWS -->
+
+  <div class="pnl">
+    <div class="pnl-title"><span class="ic">📰</span> الأخبار الاقتصادية المرتبطة</div>
+    <div id="newsFeed"></div>
+  </div>
+
+  <!-- CAPITAL + LIMITS -->
+
+  <div class="pnl">
+    <div class="pnl-title"><span class="ic">💰</span> رأس المال والحدود</div>
+    <div class="cap-grid">
+      <div class="cap-card"><div class="cap-val" style="color:var(--accent);" id="cBal">$1,000</div><div class="cap-lbl">الرصيد</div></div>
+      <div class="cap-card"><div class="cap-val" style="color:var(--accent2);" id="cEquity">$1,000</div><div class="cap-lbl">الإجمالي</div></div>
+      <div class="cap-card"><div class="cap-val" style="color:var(--danger);" id="cMaxRisk">$20</div><div class="cap-lbl">أقصى خسارة/صفقة</div></div>
+      <div class="cap-card"><div class="cap-val" style="color:var(--accent4);" id="cLot">0.02</div><div class="cap-lbl">حجم اللوت</div></div>
+    </div>
+
+```
+<div class="pnl-title" style="margin-top:8px;"><span class="ic">📋</span> جدول الليمت والأوامر</div>
+<table class="limits-table">
+  <thead><tr><th>النوع</th><th>الزوج</th><th>السعر</th><th>الحجم</th><th>الحالة</th></tr></thead>
+  <tbody id="limitsBody"></tbody>
+</table>
+```
+
+  </div>
+
+  <!-- COMPOUND MINI -->
+
+  <div class="pnl">
+    <div class="pnl-title"><span class="ic">📈</span> نمو رأس المال المركب</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div style="text-align:center;">
+        <div style="font-size:18px;font-weight:800;font-family:'JetBrains Mono';color:var(--text);" id="cpInit">$1,000</div>
+        <div style="font-size:9px;color:var(--text3);">الآن</div>
+      </div>
+      <div style="color:var(--text3);font-size:18px;">→</div>
+      <div style="text-align:center;">
+        <div style="font-size:18px;font-weight:800;font-family:'JetBrains Mono';color:var(--accent2);" id="cp6m">$2,986</div>
+        <div style="font-size:9px;color:var(--text3);">6 أشهر</div>
+      </div>
+      <div style="color:var(--text3);font-size:18px;">→</div>
+      <div style="text-align:center;">
+        <div style="font-size:18px;font-weight:800;font-family:'JetBrains Mono';color:var(--accent4);" id="cp12m">$8,916</div>
+        <div style="font-size:9px;color:var(--text3);">12 شهر</div>
+      </div>
+    </div>
+    <div id="compBars"></div>
+  </div>
+
+</div>
+</div>
+
+<script>
+// ===================================================
+// CORE DATA
+// ===================================================
+const PAIRS = {
+  'EUR/USD': { price:1.08847, spread:0.8, pip:0.0001, corr:{positive:['GBP/USD','AUD/USD'],negative:['USD/CHF','USD/JPY','DXY']}, rsi:58.4, macd:0.0012, stoch:62, bb:{upper:1.0920,mid:1.0850,lower:1.0780}, vol:1.23, news:'EUR positive — ECB hawkish tone' },
+  'GBP/USD': { price:1.27340, spread:1.1, pip:0.0001, corr:{positive:['EUR/USD','AUD/USD'],negative:['USD/CHF','DXY']}, rsi:62.1, macd:0.0018, stoch:71, bb:{upper:1.2850,mid:1.2680,lower:1.2510}, vol:1.45, news:'GBP mixed — BoE data pending' },
+  'USD/JPY': { price:149.870, spread:0.9, pip:0.01, corr:{positive:['USD/CHF','DXY'],negative:['EUR/USD','XAU/USD']}, rsi:41.8, macd:-0.085, stoch:35, bb:{upper:151.5,mid:149.8,lower:148.1}, vol:0.98, news:'JPY strong — BOJ intervention risk' },
+  'XAU/USD': { price:2341.5, spread:2.5, pip:0.1, corr:{positive:['EUR/USD','AUD/USD'],negative:['DXY','USD/JPY']}, rsi:67.3, macd:4.2, stoch:74, bb:{upper:2380,mid:2330,lower:2280}, vol:1.67, news:'Gold bullish — safe haven demand' },
+  'BTC/USD': { price:67420.0, spread:15, pip:1, corr:{positive:['ETH/USD','Risk Assets'],negative:['DXY','VIX']}, rsi:61.0, macd:320, stoch:66, bb:{upper:72000,mid:67000,lower:62000}, vol:2.1, news:'BTC accumulation — halving cycle' },
+  'USD/CHF': { price:0.90230, spread:1.0, pip:0.0001, corr:{positive:['USD/JPY','DXY'],negative:['EUR/USD','XAU/USD']}, rsi:38.5, macd:-0.0008, stoch:32, bb:{upper:0.915,mid:0.901,lower:0.887}, vol:0.87, news:'CHF safe haven demand rising' },
+};
+
+const MTF_DATA = {
+  'EUR/USD': [
+    {tf:'D1', trend:'BULL', str:78, ema:'صاعد', key:'مقاومة 1.0950'},
+    {tf:'H4', trend:'BULL', str:82, ema:'صاعد', key:'دعم 1.0830'},
+    {tf:'H1', trend:'BULL', str:71, ema:'صاعد', key:'تقاطع EMA20/50'},
+    {tf:'M15', trend:'NEUT', str:55, ema:'محايد', key:'انتظار تأكيد'},
+    {tf:'M1', trend:'BULL', str:68, ema:'صاعد', key:'نقطة دخول M1'},
+  ],
+  'GBP/USD': [
+    {tf:'D1',trend:'BULL',str:72,ema:'صاعد',key:'مقاومة 1.2850'},
+    {tf:'H4',trend:'BULL',str:76,ema:'صاعد',key:'دعم 1.2650'},
+    {tf:'H1',trend:'NEUT',str:52,ema:'محايد',key:'تردد'},
+    {tf:'M15',trend:'BULL',str:61,ema:'صاعد',key:'تأكيد مبدئي'},
+    {tf:'M1',trend:'BULL',str:65,ema:'صاعد',key:'دخول M1'},
+  ],
+  'USD/JPY': [
+    {tf:'D1',trend:'BEAR',str:74,ema:'هابط',key:'مقاومة 151.0'},
+    {tf:'H4',trend:'BEAR',str:71,ema:'هابط',key:'دعم 149.0'},
+    {tf:'H1',trend:'BEAR',str:68,ema:'هابط',key:'EMA تنازلي'},
+    {tf:'M15',trend:'BEAR',str:64,ema:'هابط',key:'تأكيد هبوط'},
+    {tf:'M1',trend:'BEAR',str:70,ema:'هابط',key:'دخول SELL M1'},
+  ],
+  'XAU/USD': [
+    {tf:'D1',trend:'BULL',str:85,ema:'صاعد',key:'مقاومة 2380'},
+    {tf:'H4',trend:'BULL',str:81,ema:'صاعد',key:'دعم 2300'},
+    {tf:'H1',trend:'BULL',str:77,ema:'صاعد',key:'زخم قوي'},
+    {tf:'M15',trend:'BULL',str:73,ema:'صاعد',key:'استمرارية'},
+    {tf:'M1',trend:'BULL',str:79,ema:'صاعد',key:'اقتناص دخول'},
+  ],
+  'BTC/USD': [
+    {tf:'D1',trend:'BULL',str:80,ema:'صاعد',key:'مقاومة 72000'},
+    {tf:'H4',trend:'NEUT',str:58,ema:'محايد',key:'تماسك'},
+    {tf:'H1',trend:'BULL',str:66,ema:'صاعد',key:'انطلاق محتمل'},
+    {tf:'M15',trend:'BULL',str:63,ema:'صاعد',key:'تأكيد H1'},
+    {tf:'M1',trend:'NEUT',str:55,ema:'محايد',key:'انتظار M1'},
+  ],
+  'USD/CHF': [
+    {tf:'D1',trend:'BEAR',str:70,ema:'هابط',key:'دعم 0.895'},
+    {tf:'H4',trend:'BEAR',str:68,ema:'هابط',key:'مقاومة 0.910'},
+    {tf:'H1',trend:'BEAR',str:72,ema:'هابط',key:'تقاطع هبوطي'},
+    {tf:'M15',trend:'BEAR',str:65,ema:'هابط',key:'استمرار هبوط'},
+    {tf:'M1',trend:'BEAR',str:67,ema:'هابط',key:'دخول SELL'},
+  ],
+};
+
+const NEWS_DATA = {
+  'EUR/USD': [
+    {title:'ECB تثبت الفائدة عند 4.5% مع لهجة متشددة',impact:'high',sent:72,dir:'pos',detail:'قرار البنك الأوروبي بالتثبيت مع إشارات لتأخير الخفض يدعم اليورو'},
+    {title:'مؤشر CPI الأمريكي أعلى من التوقعات',impact:'med',sent:35,dir:'neg',detail:'التضخم المرتفع يقوي الدولار ويضغط على EUR/USD'},
+    {title:'مبيعات التجزئة الأوروبية +0.8% متجاوزةً التوقعات',impact:'med',sent:68,dir:'pos',detail:'بيانات اقتصادية قوية من منطقة اليورو'},
+    {title:'NFP أمريكي: 250K وظيفة — أقوى من المتوقع',impact:'high',sent:30,dir:'neg',detail:'سوق العمل القوي يؤخر خفض الفائدة الأمريكية'},
+  ],
+  'USD/JPY': [
+    {title:'BOJ يبحث تعديل YCC — تدخل محتمل',impact:'high',sent:75,dir:'neg',detail:'البنك الياباني ينظر في رفع سقف عائد السندات'},
+    {title:'بيانات GDP يابانية فاقت التوقعات',impact:'med',sent:65,dir:'neg',detail:'اقتصاد ياباني قوي يدعم الين'},
+  ],
+  'XAU/USD': [
+    {title:'توترات جيوسياسية في الشرق الأوسط تدفع الذهب',impact:'high',sent:80,dir:'pos',detail:'الطلب على الملاذات الآمنة في ارتفاع'},
+    {title:'Fed يلمح لتأخير خفض الفائدة — إيجابي للذهب',impact:'high',sent:70,dir:'pos',detail:'استمرار فائدة مرتفعة أضعف ولكن توقعات التحوط تدعم'},
+  ],
+  'GBP/USD': [
+    {title:'BoE يبقي الفائدة عند 5.25% — محايد',impact:'med',sent:55,dir:'neut',detail:'البنك المركزي البريطاني ينتظر بيانات إضافية'},
+  ],
+  'BTC/USD': [
+    {title:'تدفقات ETF Bitcoin تتجاوز $500M هذا الأسبوع',impact:'high',sent:82,dir:'pos',detail:'مؤسسات تضخ سيولة ضخمة في Bitcoin ETFs'},
+    {title:'Halving Bitcoin في أبريل — ضغط عرض',impact:'high',sent:78,dir:'pos',detail:'انخفاض المعروض الجديد تاريخياً يرفع الأسعار'},
+  ],
+  'USD/CHF': [
+    {title:'SNB يخفف التدخل في سوق الفرنك',impact:'med',sent:60,dir:'neg',detail:'بنك سويسرا يقلل شراء الدولار مما يقوي الفرنك'},
+  ],
+};
+
+const CORR_DATA = {
+  'EUR/USD': [
+    {pair:'GBP/USD', corr:0.87, type:'pos'},
+    {pair:'AUD/USD', corr:0.73, type:'pos'},
+    {pair:'USD/CHF', corr:-0.91, type:'neg'},
+    {pair:'DXY', corr:-0.97, type:'neg'},
+    {pair:'XAU/USD', corr:0.62, type:'pos'},
+    {pair:'USD/JPY', corr:-0.75, type:'neg'},
+  ],
+  'GBP/USD': [
+    {pair:'EUR/USD',corr:0.87,type:'pos'},{pair:'AUD/USD',corr:0.68,type:'pos'},{pair:'DXY',corr:-0.93,type:'neg'},{pair:'USD/CHF',corr:-0.78,type:'neg'},
+  ],
+  'USD/JPY': [
+    {pair:'USD/CHF',corr:0.79,type:'pos'},{pair:'DXY',corr:0.88,type:'pos'},{pair:'EUR/USD',corr:-0.75,type:'neg'},{pair:'XAU/USD',corr:-0.68,type:'neg'},
+  ],
+  'XAU/USD': [
+    {pair:'EUR/USD',corr:0.62,type:'pos'},{pair:'AUD/USD',corr:0.71,type:'pos'},{pair:'DXY',corr:-0.85,type:'neg'},{pair:'USD/JPY',corr:-0.68,type:'neg'},
+  ],
+  'BTC/USD': [
+    {pair:'ETH/USD',corr:0.92,type:'pos'},{pair:'Risk Assets',corr:0.78,type:'pos'},{pair:'DXY',corr:-0.71,type:'neg'},{pair:'VIX',corr:-0.65,type:'neg'},
+  ],
+  'USD/CHF': [
+    {pair:'USD/JPY',corr:0.79,type:'pos'},{pair:'DXY',corr:0.91,type:'pos'},{pair:'EUR/USD',corr:-0.91,type:'neg'},{pair:'XAU/USD',corr:-0.74,type:'neg'},
+  ],
+};
+
+// ===================================================
+// STATE
+// ===================================================
+let selectedPair = 'EUR/USD';
+let capital = 1000;
+let riskPct = 2;
+let activeTrades = [];
+let dailyPnl = 0;
+let tradeSimInterval = null;
+
+// ===================================================
+// MATH ENGINE
+// ===================================================
+function calcFibonacci(high, low) {
+  const diff = high - low;
+  return {
+    r236: low + diff * 0.236,
+    r382: low + diff * 0.382,
+    r500: low + diff * 0.500,
+    r618: low + diff * 0.618,
+    r786: low + diff * 0.786,
+    ext127: high + diff * 0.272,
+    ext161: high + diff * 0.618,
+  };
+}
+
+function calcStdDev(prices) {
+  const mean = prices.reduce((a,b)=>a+b,0)/prices.length;
+  const variance = prices.reduce((s,p)=>s+Math.pow(p-mean,2),0)/prices.length;
+  return { mean, stdDev: Math.sqrt(variance), variance };
+}
+
+function calcBollinger(price, mean, stdDev, k=2) {
+  return { upper: mean+k*stdDev, mid: mean, lower: mean-k*stdDev,
+    position: price > mean+stdDev ? 'upper' : price < mean-stdDev ? 'lower' : 'mid' };
+}
+
+function calcProbability(winRate, avgWin, avgLoss) {
+  const kelly = winRate - (1-winRate)/(avgWin/avgLoss);
+  const ev = winRate*avgWin - (1-winRate)*avgLoss;
+  return { probability: Math.min(95, Math.max(30, winRate*100)), kelly: Math.max(0,kelly), ev };
+}
+
+function calcLotSize(cap, riskP, slPips, pipVal=10) {
+  const riskAmount = cap * riskP / 100;
+  return Math.max(0.01, (riskAmount / (slPips * pipVal)).toFixed(2));
+}
+
+// ===================================================
+// TICKER
+// ===================================================
+function buildTicker() {
+  const items = [
+    {p:'EUR/USD',v:1.08847,c:0.12},{p:'GBP/USD',v:1.27340,c:-0.08},{p:'USD/JPY',v:149.87,c:0.23},
+    {p:'XAU/USD',v:2341.5,c:0.45},{p:'BTC/USD',v:67420,c:1.23},{p:'USD/CHF',v:0.9023,c:-0.15},
+    {p:'AUD/USD',v:0.6541,c:0.07},{p:'USD/CAD',v:1.3621,c:-0.09},{p:'NZD/USD',v:0.5978,c:0.11},
+    {p:'EUR/JPY',v:162.45,c:0.35},{p:'GBP/JPY',v:189.12,c:0.18},{p:'DXY',v:103.42,c:-0.22},
+  ];
+  const t = document.getElementById('ticker');
+  t.innerHTML = [...items,...items].map(i => {
+    const dec = i.p.includes('BTC')?2:i.p.includes('JPY')?3:5;
+    const cls = i.c>=0?'up':'dn';
+    const sign = i.c>=0?'+':'';
+    return `<div class="ti"><span class="ti-p">${i.p}</span><span class="ti-v">${i.v.toFixed(dec)}</span><span class="ti-c ${cls}">${sign}${i.c}%</span></div>`;
+  }).join('');
+}
+
+// ===================================================
+// PAIR LIST
+// ===================================================
+function buildPairList() {
+  const container = document.getElementById('pairList');
+  container.innerHTML = Object.keys(PAIRS).map(pair => {
+    const d = PAIRS[pair];
+    const dec = pair.includes('BTC')?2:pair.includes('JPY')?3:5;
+    const isActive = pair === selectedPair;
+    return `<div class="pair-btn ${isActive?'active':''}" onclick="selectPair('${pair}',this)">
+      <span>${pair}</span>
+      <span class="pair-price">${d.price.toFixed(dec)}</span>
+    </div>`;
+  }).join('');
+}
+
+function selectPair(pair, el) {
+  selectedPair = pair;
+  document.querySelectorAll('.pair-btn').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
+  refreshAll();
+}
+
+// ===================================================
+// CORRELATED PAIRS
+// ===================================================
+function buildCorrList() {
+  const data = CORR_DATA[selectedPair] || [];
+  document.getElementById('corrList').innerHTML = data.map(c => {
+    const pct = Math.abs(c.corr*100).toFixed(0);
+    const w = Math.abs(c.corr*100);
+    return `<div class="corr-row">
+      <span class="corr-pair">${c.pair}</span>
+      <span class="corr-dir">${c.type==='pos'?'↑':'↓'}</span>
+      <div class="corr-bar-w"><div class="corr-bar-f ${c.type}" style="width:${w}%"></div></div>
+      <span class="corr-pct ${c.type}">${c.type==='pos'?'+':'-'}${pct}%</span>
+    </div>`;
+  }).join('');
+}
+
+// ===================================================
+// INDICES
+// ===================================================
+function buildIndicesList() {
+  const indices = [
+    {name:'DXY',val:'103.42',trend:'↓',color:'var(--danger)'},
+    {name:'S&P 500',val:'5,218',trend:'↑',color:'var(--accent2)'},
+    {name:'VIX',val:'14.2',trend:'↓',color:'var(--accent2)'},
+    {name:'Gold',val:'$2,341',trend:'↑',color:'var(--accent4)'},
+    {name:'10Y UST',val:'4.38%',trend:'→',color:'var(--text2)'},
+  ];
+  document.getElementById('indicesList').innerHTML = indices.map(i =>
+    `<div class="corr-row">
+      <span class="corr-pair" style="color:var(--text2)">${i.name}</span>
+      <span style="color:${i.color};font-size:14px;">${i.trend}</span>
+      <span style="font-family:'JetBrains Mono';font-size:11px;color:${i.color};margin-right:auto;">${i.val}</span>
+    </div>`
+  ).join('');
+}
+
+// ===================================================
+// MTF GRID
+// ===================================================
+function buildMTF() {
+  const data = MTF_DATA[selectedPair];
+  document.getElementById('mtfPairLabel').textContent = selectedPair;
+  document.getElementById('mtfGrid').innerHTML = data.map(d => {
+    const tc = d.trend==='BULL'?'bull':d.trend==='BEAR'?'bear':'neut';
+    const txt = d.trend==='BULL'?'صاعد':d.trend==='BEAR'?'هابط':'محايد';
+    return `<div class="mtf-card ${tc}">
+      <div class="mtf-tf">${d.tf}</div>
+      <div class="mtf-trend ${tc}">${txt}</div>
+      <div class="mtf-str">${d.str}% قوة</div>
+      <div style="font-size:9px;color:var(--text3);margin-top:3px;">${d.key}</div>
+      <div class="mtf-bar ${tc}" style="width:${d.str}%;margin:6px auto 0;"></div>
+    </div>`;
+  }).join('');
+}
+
+// ===================================================
+// MAIN SIGNAL
+// ===================================================
+function buildSignal() {
+  const d = PAIRS[selectedPair];
+  const mtf = MTF_DATA[selectedPair];
+  const bullCount = mtf.filter(m=>m.trend==='BULL').length;
+  const bearCount = mtf.filter(m=>m.trend==='BEAR').length;
+  const signal = bullCount>=3?'BUY':bearCount>=3?'SELL':'WAIT';
+  const confCount = Math.max(bullCount,bearCount);
+  const confPct = Math.min(96, 55 + confCount*8 + (d.rsi>45&&d.rsi<75?10:0));
+
+  const box = document.getElementById('mainSignalBox');
+  const txt = document.getElementById('mainSigTxt');
+  const conf = document.getElementById('mainSigConf');
+  const pct = document.getElementById('mainSigPct');
+
+  const sc = signal==='BUY'?'buy':signal==='SELL'?'sell':'wait';
+  box.className = 'signal-big '+sc;
+  txt.className = 'sig-txt '+sc;
+  txt.textContent = signal==='BUY'?'BUY':signal==='SELL'?'SELL':'WAIT';
+  conf.textContent = `${confCount}/5 فريمات مؤكدة • ${selectedPair}`;
+  pct.textContent = confPct+'%';
+
+  const riskAmt = capital*riskPct/100;
+  const ev = (confPct/100*riskAmt*3.2 - (1-confPct/100)*riskAmt).toFixed(0);
+  document.getElementById('mainSigEV').textContent = `EV: +$${ev} / صفقة`;
+
+  // Strength bars
+  const trendStr = Math.round(45+bullCount*10+bearCount*8);
+  const momStr = Math.round(d.stoch*0.7+d.rsi*0.3);
+  const sigStr = confPct;
+  document.getElementById('sTrend').style.width=trendStr+'%';
+  document.getElementById('sTrendV').textContent=trendStr+'%';
+  document.getElementById('sMom').style.width=momStr+'%';
+  document.getElementById('sMomV').textContent=momStr.toFixed(0)+'%';
+  document.getElementById('sStr').style.width=sigStr+'%';
+  document.getElementById('sStrV').textContent=sigStr+'%';
+
+  return signal;
+}
+
+// ===================================================
+// INDICATORS
+// ===================================================
+function buildIndicators() {
+  const d = PAIRS[selectedPair];
+  const rsiSig = d.rsi>70?{v:d.rsi.toFixed(1),c:'bear',s:'تشبع شرائي'}:d.rsi<30?{v:d.rsi.toFixed(1),c:'bull',s:'تشبع بيعي'}:{v:d.rsi.toFixed(1),c:'bull',s:'منطقة شراء'};
+  const macdSig = d.macd>0?{v:(d.macd>0?'+':'')+d.macd,c:'bull',s:'تقاطع صعودي'}:{v:d.macd,c:'bear',s:'تقاطع هبوطي'};
+  const stochSig = d.stoch>80?{v:d.stoch,c:'bear',s:'ذروة شراء'}:d.stoch<20?{v:d.stoch,c:'bull',s:'ذروة بيع'}:{v:d.stoch,c:'neut',s:'محايد'};
+  const volSig = {v:d.vol+'x',c:d.vol>1.2?'bull':'neut',s:d.vol>1.2?'حجم مرتفع':'حجم عادي'};
+  const emaSig = d.rsi>50?{v:'Aligned',c:'bull',s:'EMA 20>50>200'}:{v:'Inverted',c:'bear',s:'EMA انعكاس'};
+  const bbPos = d.price>d.bb.upper?{v:'Upper',c:'bear',s:'قرب النطاق العلوي'}:d.price<d.bb.lower?{v:'Lower',c:'bull',s:'قرب النطاق السفلي'}:{v:'Mid',c:'neut',s:'داخل النطاق'};
+
+  const inds = [
+    {name:'RSI (14)',val:rsiSig.v,c:rsiSig.c,s:rsiSig.s},
+    {name:'MACD',val:macdSig.v,c:macdSig.c,s:macdSig.s},
+    {name:'Stochastic',val:stochSig.v,c:stochSig.c,s:stochSig.s},
+    {name:'Volume',val:volSig.v,c:volSig.c,s:volSig.s},
+    {name:'EMA Stack',val:emaSig.v,c:emaSig.c,s:emaSig.s},
+    {name:'Bollinger',val:bbPos.v,c:bbPos.c,s:bbPos.s},
+  ];
+  document.getElementById('indGrid').innerHTML = inds.map(i =>
+    `<div class="ind-card">
+      <div class="ind-name">${i.name}</div>
+      <div class="ind-val ${i.c}">${i.val}</div>
+      <div class="ind-sig" style="color:var(--text3)">${i.s}</div>
+    </div>`
+  ).join('');
+}
+
+// ===================================================
+// PRICE LEVELS
+// ===================================================
+function buildLevels() {
+  const d = PAIRS[selectedPair];
+  const p = d.price;
+  const pip = d.pip;
+  const signal = buildSignal();
+  const isBuy = signal !== 'SELL';
+  const dec = selectedPair.includes('BTC')?2:selectedPair.includes('JPY')?3:5;
+
+  const entry = isBuy ? p - pip*8 : p + pip*8;
+  const sl = isBuy ? entry - pip*43 : entry + pip*43;
+  const tp1 = isBuy ? entry + pip*43 : entry - pip*43;
+  const tp2 = isBuy ? entry + pip*86 : entry - pip*86;
+  const tp3 = isBuy ? entry + pip*150 : entry - pip*150;
+
+  document.getElementById('levelsGrid').innerHTML = `
+    <div class="lv"><span class="lv-lbl">السعر الحالي</span><span class="lv-val cu">${p.toFixed(dec)}</span></div>
+    <div class="lv"><span class="lv-lbl">🟡 الدخول</span><span class="lv-val en">${entry.toFixed(dec)}</span></div>
+    <div class="lv"><span class="lv-lbl">🟢 TP1 (+43p)</span><span class="lv-val tp">${tp1.toFixed(dec)}</span></div>
+    <div class="lv"><span class="lv-lbl">🟢 TP2 (+86p)</span><span class="lv-val tp">${tp2.toFixed(dec)}</span></div>
+    <div class="lv"><span class="lv-lbl">🟢 TP3 (+150p)</span><span class="lv-val tp">${tp3.toFixed(dec)}</span></div>
+    <div class="lv"><span class="lv-lbl">🔴 Stop Loss</span><span class="lv-val sl">${sl.toFixed(dec)}</span></div>
+  `;
+  return {entry, sl, tp1, tp2, tp3};
+}
+
+// ===================================================
+// FIBONACCI
+// ===================================================
+function buildFibonacci() {
+  const d = PAIRS[selectedPair];
+  const range = d.bb.upper - d.bb.lower;
+  const high = d.bb.upper + range*0.1;
+  const low = d.bb.lower - range*0.1;
+  const fib = calcFibonacci(high, low);
+  const dec = selectedPair.includes('BTC')?2:selectedPair.includes('JPY')?3:5;
+  const levels = [
+    {ratio:'23.6%',val:fib.r236,tag:''},
+    {ratio:'38.2%',val:fib.r382,tag:'🎯 قوي'},
+    {ratio:'50.0%',val:fib.r500,tag:''},
+    {ratio:'61.8%',val:fib.r618,tag:'🌟 ذهبي'},
+    {ratio:'78.6%',val:fib.r786,tag:''},
+    {ratio:'127%',val:fib.ext127,tag:'Ext'},
+    {ratio:'161.8%',val:fib.ext161,tag:'Ext'},
+  ];
+  const current = d.price;
+  document.getElementById('fibGrid').innerHTML = levels.map(l => {
+    const dist = Math.abs(current-l.val)/l.val*100;
+    const pct = Math.max(10, Math.min(100, 100-dist*20));
+    return `<div class="fib-row">
+      <span class="fib-ratio">${l.ratio}</span>
+      <div class="fib-bar-wrap"><div class="fib-bar-fill" style="width:${pct}%"></div></div>
+      <span class="fib-price">${l.val.toFixed(dec)}</span>
+      ${l.tag?`<span class="fib-tag">${l.tag}</span>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ===================================================
+// BOLLINGER + STD DEV
+// ===================================================
+function buildBollingerStdDev() {
+  const d = PAIRS[selectedPair];
+  const dec = selectedPair.includes('BTC')?2:selectedPair.includes('JPY')?3:5;
+  const prices = Array.from({length:20},(_,i)=>d.bb.mid + (Math.random()-0.5)*d.pip*60);
+  const {mean, stdDev} = calcStdDev(prices);
+  const bb = calcBollinger(d.price, d.bb.mid, (d.bb.upper-d.bb.mid)/2);
+  const bwPct = ((d.bb.upper-d.bb.lower)/d.bb.mid*100).toFixed(2);
+  const posMap = {upper:'قرب العلوي 🔴',mid:'المنتصف ⚪',lower:'قرب السفلي 🟢'};
+
+  document.getElementById('bbGrid').innerHTML = `
+    <div class="bb-row"><span class="bb-lbl">Upper Band</span><span class="bb-val" style="color:var(--danger)">${d.bb.upper.toFixed(dec)}</span></div>
+    <div class="bb-row"><span class="bb-lbl">Middle (SMA)</span><span class="bb-val" style="color:var(--text)">${d.bb.mid.toFixed(dec)}</span></div>
+    <div class="bb-row"><span class="bb-lbl">Lower Band</span><span class="bb-val" style="color:var(--accent2)">${d.bb.lower.toFixed(dec)}</span></div>
+    <div class="bb-row"><span class="bb-lbl">Bandwidth</span><span class="bb-val" style="color:var(--accent4)">${bwPct}%</span></div>
+    <div class="bb-row"><span class="bb-lbl">السعر الآن</span><span class="bb-val" style="color:var(--accent);font-size:10px;">${posMap[bb.position]}</span></div>
+  `;
+
+  document.getElementById('stdDevGrid').innerHTML = `
+    <div class="bb-row"><span class="bb-lbl">StdDev (20)</span><span class="bb-val" style="color:var(--purple)">${stdDev.toFixed(dec>3?5:3)}</span></div>
+    <div class="bb-row"><span class="bb-lbl">المتوسط</span><span class="bb-val" style="color:var(--text)">${d.bb.mid.toFixed(dec)}</span></div>
+    <div class="bb-row"><span class="bb-lbl">+1σ</span><span class="bb-val" style="color:var(--accent4)">${(d.bb.mid+stdDev).toFixed(dec)}</span></div>
+    <div class="bb-row"><span class="bb-lbl">-1σ</span><span class="bb-val" style="color:var(--accent4)">${(d.bb.mid-stdDev).toFixed(dec)}</span></div>
+    <div class="bb-row"><span class="bb-lbl">+2σ</span><span class="bb-val" style="color:var(--danger)">${(d.bb.mid+2*stdDev).toFixed(dec)}</span></div>
+  `;
+
+  // Probability
+  const mtf = MTF_DATA[selectedPair];
+  const bullCount = mtf.filter(m=>m.trend==='BULL').length;
+  const winRate = 0.5 + bullCount*0.08;
+  const avgWin = capital*riskPct/100*3.2;
+  const avgLoss = capital*riskPct/100;
+  const prob = calcProbability(winRate, avgWin, avgLoss);
+  const pct = Math.round(prob.probability);
+  const offset = 201 - (201*pct/100);
+
+  document.getElementById('probCircle').setAttribute('stroke-dashoffset', offset);
+  document.getElementById('probCircle').setAttribute('stroke', pct>70?'var(--accent2)':pct>50?'var(--accent4)':'var(--danger)');
+  document.getElementById('probPct').textContent = pct+'%';
+  document.getElementById('probPct').style.color = pct>70?'var(--accent2)':pct>50?'var(--accent4)':'var(--danger)';
+  document.getElementById('probStats').innerHTML = `
+    <div style="color:var(--text3);">Kelly: ${(prob.kelly*100).toFixed(1)}%</div>
+    <div style="color:var(--accent2);">EV: +$${(prob.ev).toFixed(0)}</div>
+  `;
+}
+
+// ===================================================
+// NEWS
+// ===================================================
+function buildNews() {
+  const news = NEWS_DATA[selectedPair] || [];
+  document.getElementById('newsFeed').innerHTML = news.map(n => {
+    const sentFill = n.dir==='pos'?'var(--accent2)':n.dir==='neg'?'var(--danger)':'var(--accent4)';
+    return `<div class="news-item ${n.dir}">
+      <div class="news-header">
+        <span class="news-title">${n.title}</span>
+        <span class="news-impact ${n.impact}">${n.impact.toUpperCase()}</span>
+      </div>
+      <div class="news-detail">${n.detail}</div>
+      <div class="news-sentiment">
+        <span class="news-sent-label" style="font-size:9px;color:var(--text3);">تأثير</span>
+        <div class="news-sent-bar"><div class="news-sent-fill" style="width:${n.sent}%;background:${sentFill};"></div></div>
+        <span style="font-size:10px;font-family:'JetBrains Mono';color:${sentFill}">${n.sent}%</span>
+      </div>
+    </div>`;
+  }).join('') || '<div style="text-align:center;padding:12px;color:var(--text3);font-size:11px;">لا توجد أخبار حالياً</div>';
+}
+
+// ===================================================
+// CAPITAL
+// ===================================================
+function buildCapital() {
+  capital = parseFloat(document.getElementById('capitalInp').value)||1000;
+  riskPct = parseFloat(document.getElementById('riskInp').value)||2;
+  const maxRisk = (capital*riskPct/100).toFixed(2);
+  const lot = calcLotSize(capital,riskPct,43);
+  document.getElementById('cBal').textContent='$'+capital.toLocaleString();
+  document.getElementById('cEquity').textContent='$'+(capital+dailyPnl).toFixed(0);
+  document.getElementById('cMaxRisk').textContent='$'+maxRisk;
+  document.getElementById('cLot').textContent=lot;
+  document.getElementById('hBal').textContent='$'+capital.toLocaleString();
+
+  // Compound
+  const cpInit=document.getElementById('cpInit');
+  const cp6m=document.getElementById('cp6m');
+  const cp12m=document.getElementById('cp12m');
+  cpInit.textContent='$'+capital.toLocaleString();
+  let b=capital;
+  for(let i=0;i<6;i++) b*=1.20;
+  cp6m.textContent='$'+b.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+  b=capital;
+  for(let i=0;i<12;i++) b*=1.20;
+  cp12m.textContent='$'+b.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+
+  buildCompBars();
+}
+
+function buildCompBars() {
+  let b=capital;
+  let html='';
+  for(let m=1;m<=6;m++){
+    b*=1.20;
+    const w=Math.min(100,(b/capital/9*100));
+    html+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+      <span style="font-size:9px;color:var(--text3);width:40px;">شهر ${m}</span>
+      <div style="flex:1;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden;">
+        <div style="width:${w}%;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px;"></div>
+      </div>
+      <span style="font-size:9px;font-family:'JetBrains Mono';color:var(--accent2);width:55px;">\$${b.toFixed(0)}</span>
+    </div>`;
+  }
+  document.getElementById('compBars').innerHTML=html;
+}
+
+function onCapChange(){buildCapital();}
+
+// ===================================================
+// LIMITS TABLE
+// ===================================================
+function buildLimits() {
+  const limits = [
+    {type:'BUY LIMIT',pair:selectedPair,price:(PAIRS[selectedPair].price-PAIRS[selectedPair].pip*20).toFixed(5),size:'0.02',status:'pnd'},
+    {type:'SELL STOP',pair:'USD/JPY',price:'150.500',size:'0.01',status:'pnd'},
+  ];
+  if(activeTrades.length>0){
+    activeTrades.forEach(t=>{
+      limits.unshift({type:t.dir,pair:t.pair,price:t.entry,size:t.lot,status:'act'});
+    });
+  }
+  document.getElementById('limitsBody').innerHTML=limits.map(l=>`
+    <tr>
+      <td style="color:var(--text2);">${l.type}</td>
+      <td style="color:var(--accent);font-family:'JetBrains Mono';">${l.pair}</td>
+      <td style="font-family:'JetBrains Mono';">${l.price}</td>
+      <td>${l.size}</td>
+      <td class="${l.status}">${l.status==='act'?'فعال':l.status==='lim'?'حد':'معلق'}</td>
+    </tr>`).join('');
+}
+
+// ===================================================
+// ACTIVE TRADES + DYNAMIC TRAILING
+// ===================================================
+function openSimTrade() {
+  if(activeTrades.length >= 3){ alert('وصلت للحد الأقصى من الصفقات اليومية!'); return; }
+  const d = PAIRS[selectedPair];
+  const signal = document.getElementById('mainSigTxt').textContent;
+  if(signal==='WAIT'){alert('الإشارة ضعيفة — انتظر تأكيداً أقوى!');return;}
+  const lot = calcLotSize(capital,riskPct,43);
+  const pip = d.pip;
+  const isBuy = signal==='BUY';
+  const entry = d.price;
+  const sl = isBuy?entry-pip*43:entry+pip*43;
+  const tp1 = isBuy?entry+pip*43:entry-pip*43;
+  const tp2 = isBuy?entry+pip*86:entry-pip*86;
+  const tp3 = isBuy?entry+pip*150:entry-pip*150;
+  const dec = selectedPair.includes('BTC')?2:selectedPair.includes('JPY')?3:5;
+
+  const trade = {
+    id: Date.now(), pair:selectedPair, dir:signal, entry:entry.toFixed(dec),
+    sl:sl.toFixed(dec), tp1:tp1.toFixed(dec), tp2:tp2.toFixed(dec), tp3:tp3.toFixed(dec),
+    lot, currentPrice:entry, pnl:0, pips:0, phase:'active',
+    openTime: new Date().toLocaleTimeString(), isBuy
+  };
+  activeTrades.push(trade);
+  document.getElementById('hTrades').textContent = activeTrades.length;
+  renderActiveTrades();
+  startTrailingSimulation(trade.id);
+}
+
+function startTrailingSimulation(id){
+  const interval = setInterval(()=>{
+    const trade = activeTrades.find(t=>t.id===id);
+    if(!trade){clearInterval(interval);return;}
+    const d = PAIRS[trade.pair];
+    const pip = d.pip;
+    const move = (Math.random()-0.42) * pip * 8;
+    trade.currentPrice += move;
+    const dist = trade.isBuy ? trade.currentPrice - parseFloat(trade.entry) : parseFloat(trade.entry) - trade.currentPrice;
+    trade.pips = Math.round(dist/pip);
+    trade.pnl = parseFloat((trade.pips * pip * trade.lot * 100000 * 0.1).toFixed(2));
+
+    // TRAILING LOGIC
+    const tp1Val = parseFloat(trade.tp1);
+    const tp2Val = parseFloat(trade.tp2);
+    const slVal = parseFloat(trade.sl);
+    const entryVal = parseFloat(trade.entry);
+    const dec = trade.pair.includes('BTC')?2:trade.pair.includes('JPY')?3:5;
+
+    if(trade.isBuy){
+      if(trade.currentPrice >= tp1Val && trade.phase==='active'){
+        trade.sl = entryVal.toFixed(dec); // Break even
+        trade.phase = 'breakeven';
+      }
+      if(trade.currentPrice >= tp2Val && trade.phase==='breakeven'){
+        trade.sl = tp1Val.toFixed(dec); // Trail to TP1
+        trade.phase = 'trailing';
+      }
+      if(trade.phase==='trailing'){
+        const newSL = (trade.currentPrice - pip*30).toFixed(dec);
+        if(parseFloat(newSL)>parseFloat(trade.sl)) trade.sl=newSL;
+      }
+      if(trade.currentPrice <= parseFloat(trade.sl)){
+        closeTrade(id,'SL');clearInterval(interval);return;
+      }
+      if(trade.currentPrice >= parseFloat(trade.tp3)){
+        closeTrade(id,'TP3');clearInterval(interval);return;
+      }
+    }
+    renderActiveTrades();
+  },1500);
+}
+
+function closeTrade(id, reason){
+  const idx = activeTrades.findIndex(t=>t.id===id);
+  if(idx===-1)return;
+  const t=activeTrades[idx];
+  dailyPnl += t.pnl;
+  document.getElementById('hPnl').textContent = (dailyPnl>=0?'+':'')+'$'+dailyPnl.toFixed(2);
+  document.getElementById('hPnl').style.color = dailyPnl>=0?'var(--accent2)':'var(--danger)';
+  activeTrades.splice(idx,1);
+  document.getElementById('hTrades').textContent=activeTrades.length;
+  renderActiveTrades();
+  buildLimits();
+}
+
+function renderActiveTrades(){
+  const container=document.getElementById('activeTrades');
+  if(activeTrades.length===0){
+    container.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:11px;">لا توجد صفقات فعالة — اضغط "تحليل" لفتح صفقة</div>';
+    return;
+  }
+  container.innerHTML=activeTrades.map(t=>{
+    const pnlClass=t.pnl>=0?'pos':'neg';
+    const progPct=Math.min(100,Math.max(0,(t.pips/150)*100));
+    const phaseColor=t.phase==='active'?'var(--accent4)':t.phase==='breakeven'?'var(--accent)':'var(--accent2)';
+    const phaseText=t.phase==='active'?'نشط':t.phase==='breakeven'?'Break Even 🔄':'Trailing ✅';
+    return `<div class="dtt">
+      <div class="dtt-header">
+        <span class="dtt-pair">${t.pair}</span>
+        <span class="dtt-dir ${t.dir.toLowerCase()}">${t.dir}</span>
+        <span style="font-size:9px;color:var(--text3);">${t.openTime}</span>
+        <button onclick="closeTrade(${t.id},'Manual')" style="font-size:9px;padding:2px 7px;border:1px solid var(--danger);border-radius:4px;background:transparent;color:var(--danger);cursor:pointer;">إغلاق</button>
+      </div>
+      <div class="dtt-progress"><div class="dtt-fill" style="width:${progPct}%"></div></div>
+      <div class="dtt-markers">
+        <span>SL: ${t.sl}</span>
+        <span>Entry: ${t.entry}</span>
+        <span>TP3: ${t.tp3}</span>
+      </div>
+      <div class="dtt-pnl ${pnlClass}">${t.pnl>=0?'+':''}$${t.pnl}</div>
+      <div class="dtt-trail" style="color:${phaseColor};">🔄 ${phaseText} — ${t.pips} pips</div>
+    </div>`;
+  }).join('');
+}
+
+// ===================================================
+// AI ANALYSIS
+// ===================================================
+async function runAI(){
+  const btn=document.getElementById('analyzeBtn');
+  const loading=document.getElementById('aiLoading');
+  const result=document.getElementById('aiResult');
+  const box=document.getElementById('aiBox');
+  const d=PAIRS[selectedPair];
+  const mtf=MTF_DATA[selectedPair];
+  const signal=document.getElementById('mainSigTxt').textContent;
+  const conf=document.getElementById('mainSigPct').textContent;
+  const news=NEWS_DATA[selectedPair]||[];
+  const tf=document.getElementById('tfInput')?.value||'H4';
+
+  btn.disabled=true;
+  loading.style.display='block';
+  result.style.display='none';
+  document.getElementById('aiLoadingTxt').textContent='يحلل الفريمات المتعددة...';
+
+  const prompt=`أنت خبير تداول Forex على مستوى Wall Street. قدم تحليلاً شاملاً ومتكاملاً باللغة العربية:
+
+الزوج: ${selectedPair}
+السعر: ${d.price}
+الإشارة الرئيسية: ${signal} (${conf} ثقة)
+رأس المال: $${capital} | المخاطرة: ${riskPct}%
+
+تحليل الفريمات:
+${mtf.map(m=>`- ${m.tf}: ${m.trend==='BULL'?'صاعد':m.trend==='BEAR'?'هابط':'محايد'} (${m.str}%)`).join('\n')}
+
+المؤشرات:
+- RSI: ${d.rsi} | MACD: ${d.macd>0?'إيجابي':'سلبي'} | Stochastic: ${d.stoch}
+- Bollinger: Upper=${d.bb.upper} Mid=${d.bb.mid} Lower=${d.bb.lower}
+
+الأخبار:
+${news.map(n=>`- ${n.title} (${n.dir==='pos'?'إيجابي':n.dir==='neg'?'سلبي':'محايد'})`).join('\n')}
+
+المطلوب (موجز واحترافي):
+1. قرار الدخول النهائي مع المبرر
+2. نقطة الدخول على M1 الأفضل
+3. استراتيجية Trailing SL الموصى بها
+4. تحذيرات المخاطر
+5. توقع الحركة القادمة`;
+
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages:[{role:"user",content:prompt}]})
+    });
+    const data=await res.json();
+    const text=data.content?.map(c=>c.text||'').join('')||'تعذر التحليل';
+    loading.style.display='none';result.style.display='block';box.textContent='';
+    let i=0;const type=()=>{if(i<text.length){box.textContent+=text[i++];setTimeout(type,10);}};type();
+  }catch(e){
+    loading.style.display='none';result.style.display='block';box.textContent='⚠️ خطأ: '+e.message;
+  }
+  btn.disabled=false;
+}
+
+async function runNewsAI(){
+  const btn=document.getElementById('newsBtn');
+  const loading=document.getElementById('aiLoading');
+  const result=document.getElementById('aiResult');
+  const box=document.getElementById('aiBox');
+  const news=NEWS_DATA[selectedPair]||[];
+
+  btn.disabled=true;
+  loading.style.display='block';
+  result.style.display='none';
+  document.getElementById('aiLoadingTxt').textContent='يحلل الأخبار الاقتصادية...';
+
+  const prompt=`أنت محلل اقتصادي خبير. حلل هذه الأخبار الاقتصادية وأثرها على ${selectedPair} باللغة العربية بشكل موجز واحترافي:
+
+${news.map((n,i)=>`${i+1}. ${n.title}\nالتفاصيل: ${n.detail}\nالتأثير: ${n.sent}% | ${n.dir==='pos'?'إيجابي':n.dir==='neg'?'سلبي':'محايد'}`).join('\n\n')}
+
+المطلوب:
+1. ملخص الأثر الإجمالي للأخبار على ${selectedPair}
+2. الاتجاه المتوقع بناءً على البيانات الأساسية
+3. الحوادث الاقتصادية القادمة المهمة
+4. التوصية النهائية: شراء / بيع / انتظار`;
+
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:800,messages:[{role:"user",content:prompt}]})
+    });
+    const data=await res.json();
+    const text=data.content?.map(c=>c.text||'').join('')||'تعذر التحليل';
+    loading.style.display='none';result.style.display='block';box.textContent='';
+    let i=0;const type=()=>{if(i<text.length){box.textContent+=text[i++];setTimeout(type,10);}};type();
+  }catch(e){
+    loading.style.display='none';result.style.display='block';box.textContent='⚠️ خطأ: '+e.message;
+  }
+  btn.disabled=false;
+}
+
+// ===================================================
+// REFRESH ALL
+// ===================================================
+function refreshAll(){
+  buildMTF();
+  buildSignal();
+  buildIndicators();
+  buildLevels();
+  buildFibonacci();
+  buildBollingerStdDev();
+  buildCorrList();
+  buildNews();
+  buildLimits();
+  buildCapital();
+}
+
+// ===================================================
+// PRICE FLUCTUATION
+// ===================================================
+function fluctuatePrices(){
+  Object.keys(PAIRS).forEach(pair=>{
+    const d=PAIRS[pair];
+    d.price += (Math.random()-0.5)*d.pip*3;
+    d.rsi = Math.max(20,Math.min(80,d.rsi+(Math.random()-0.5)*1.5));
+  });
+  // Update ticker prices
+  const allPairs=document.querySelectorAll('.pair-btn');
+  allPairs.forEach(btn=>{
+    const pair=btn.querySelector('span:first-child')?.textContent;
+    if(pair&&PAIRS[pair]){
+      const dec=pair.includes('BTC')?2:pair.includes('JPY')?3:5;
+      const priceEl=btn.querySelector('.pair-price');
+      if(priceEl) priceEl.textContent=PAIRS[pair].price.toFixed(dec);
+    }
+  });
+  // Refresh signal
+  buildSignal();
+  setTimeout(fluctuatePrices,3500);
+}
+
+// ===================================================
+// INIT
+// ===================================================
+buildTicker();
+buildPairList();
+refreshAll();
+fluctuatePrices();
+</script>
+
+</body>
+</html>
